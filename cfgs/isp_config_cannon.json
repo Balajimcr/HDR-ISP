@@ -1,5 +1,5 @@
 {
-    "raw_file": "./data/connan_raw14.raw",
+    "raw_file": "../data/connan_raw14.raw",
     "out_file_path": "./",
     "info": {
         "sensor_name": "cannon",
