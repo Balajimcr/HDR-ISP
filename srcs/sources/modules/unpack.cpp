@@ -53,8 +53,8 @@ static void UnpackRaw12ToRaw16(uint8_t *raw, uint16_t *unpack_raw16, int width, 
     {
         raw12_packed_in = raw + p1;
         raw16_unpacked_out = unpack_raw16 + p2;
-        raw16_unpacked_out[0] = (raw12_packed_in[0] << 4) | ((raw12_packed_in[3] >> 4) & 0x0f);
-        raw16_unpacked_out[1] = (raw12_packed_in[1] << 4) | ((raw12_packed_in[3] >> 0) & 0x0f);
+        raw16_unpacked_out[0] = (raw12_packed_in[0] << 4) | ((raw12_packed_in[2] >> 4) & 0x0f);
+        raw16_unpacked_out[1] = (raw12_packed_in[1] << 4) | ((raw12_packed_in[2] >> 0) & 0x0f);
     }
 }
 

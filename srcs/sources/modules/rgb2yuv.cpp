@@ -40,9 +40,13 @@ static int Rgb2Yuv(Frame *frame, const IspPrms *isp_prm)
             auto g = bgr_i[3 * pixel_idx + 1];
             auto r = bgr_i[3 * pixel_idx + 2];
 
-            auto y = static_cast<uint8_t>(0.299 * r + 0.587 * g + 0.114 * b);
-            auto u = static_cast<uint8_t>(-0.147 * r - 0.289 * g + 0.436 * b + 128);
-            auto v = static_cast<uint8_t>(0.615 * r - 0.515 * g - 0.100 * b + 128);
+            auto y = static_cast<int32_t>(0.299 * r + 0.587 * g + 0.114 * b);
+            auto u = static_cast<int32_t>(-0.147 * r - 0.289 * g + 0.436 * b + 128);
+            auto v = static_cast<int32_t>(0.615 * r - 0.515 * g - 0.100 * b + 128);
+
+            ClipMinMax<int32_t>(y, 255, 0);
+            ClipMinMax<int32_t>(u, 255, 0);
+            ClipMinMax<int32_t>(v, 255, 0);
 
             y_o[pixel_idx] = y;
             u_o[pixel_idx] = u;

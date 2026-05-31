@@ -51,3 +51,26 @@ size_t WriteMemToFile(std::string file_name, void* mem, int size)
 
     return rd;
 }
+
+uint32_t ComputeFileCrc32(const std::string &file_path)
+{
+    FILE *fp = fopen(file_path.c_str(), "rb");
+    if (!fp) {
+        LOG(ERROR) << file_path << " open failed for CRC";
+        return 0;
+    }
+
+    uint32_t crc = 0xFFFFFFFF;
+    int ch;
+    while ((ch = fgetc(fp)) != EOF) {
+        crc ^= static_cast<uint32_t>(ch);
+        for (int i = 0; i < 8; ++i) {
+            if (crc & 1)
+                crc = (crc >> 1) ^ 0xEDB88320;
+            else
+                crc >>= 1;
+        }
+    }
+    fclose(fp);
+    return ~crc;
+}

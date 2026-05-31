@@ -12,6 +12,8 @@
 #include "easylogging++.h"
 #include "EasyBMP.h"
 #include "common/pipeline.h"
+#include "common/common.h"
+#include <iomanip>
 
 //#include <opencv2/opencv.hpp>
 //#include <opencv2/core.hpp>
@@ -59,9 +61,24 @@ int main(int argc, char *argv[])
         //cv::Mat isp_result(height, width, CV_8UC3, frame.data.bgr_u8_o);
         //cv::imwrite(isp_prms.out_file_path + "isp_result.png", isp_result);
         std::string bmp_path = isp_prms.out_file_path + "isp_result.bmp";
-        std::string raw_path = isp_prms.out_file_path + "isp_result_bgr.raw";
+        //std::string raw_path = isp_prms.out_file_path + "isp_result_bgr.raw";
         WriteBgrMemToBmp(bmp_path.c_str(), (char *)frame.data.bgr_u8_o, width, height, 24);
         //WriteMemToFile(raw_path, frame.data.bgr_u8_o, width * height * 3);
+
+        uint32_t crc_val = ComputeFileCrc32(bmp_path);
+        const uint32_t kGoldenCrc = 0xEC90E952;
+
+        if (crc_val == kGoldenCrc) {
+            LOG(INFO) << "CRC validation passed. Output matches golden reference.";
+            LOG(INFO) << "  Computed CRC: 0x" << std::hex << std::uppercase << crc_val;
+            LOG(INFO) << "  Golden CRC:   0x" << std::hex << std::uppercase << kGoldenCrc;
+            LOG(INFO) << "success";
+        } else {
+            LOG(ERROR) << "CRC validation failed. Output does not match golden reference.";
+            LOG(ERROR) << "  Computed CRC: 0x" << std::hex << std::uppercase << crc_val;
+            LOG(ERROR) << "  Golden CRC:   0x" << std::hex << std::uppercase << kGoldenCrc;
+        }
+
         LOG(INFO) << "Output dump: isp_result | " << width << "x" << height
                   << " | BGR(uint8) | " << bmp_path;
         //LOG(INFO) << "Output dump: isp_result_bgr | " << width * height * 3 << " bytes | " << raw_path;
