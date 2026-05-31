@@ -65,6 +65,7 @@ void RegisterYuv2RgbMod()
     mod.out_domain = ColorDomains::BGR;
 
     mod.name = MOD_NAME;
+    mod.version = "001";
     mod.run_function = Yuv2Bgr;
 
     RegisterIspModule(mod);

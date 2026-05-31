@@ -69,6 +69,7 @@ void RegisterSaturationMod()
     mod.out_domain = ColorDomains::YUV;
 
     mod.name = MOD_NAME;
+    mod.version = "001";
     mod.run_function = Saturation;
 
     RegisterIspModule(mod);

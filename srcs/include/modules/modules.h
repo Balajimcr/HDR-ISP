@@ -35,6 +35,7 @@ struct IspPrms
 struct IspModule
 {
     std::string name;
+    std::string version;
 
     DataPtrTypes in_type;
     DataPtrTypes out_type;

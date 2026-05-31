@@ -78,6 +78,7 @@ void RegisterCnsMod()
     mod.out_domain = ColorDomains::YUV;
 
     mod.name = MOD_NAME;
+    mod.version = "001";
     mod.run_function = Cns;
 
     RegisterIspModule(mod);

@@ -37,7 +37,7 @@ int ShowAllIspModules()
 {
     LOG(INFO) << "============= default pipeline mods show start ==============";
     for (auto iter = s_isp_mode_map.rbegin(); iter != s_isp_mode_map.rend(); ++iter) {
-		LOG(INFO) << "isp module-> [" << iter->first << "\t] | in bits [" \
+		LOG(INFO) << "isp module-> [" << iter->first << "\t] | ver [" << iter->second.version << "] | in bits [" \
                  << std::to_string((int)iter->second.in_type) << "] | out bits [" << std::to_string((int)iter->second.out_type) << "]";
     }
     LOG(INFO) << "============= default pipeline mods show end ==============";

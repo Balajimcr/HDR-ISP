@@ -68,6 +68,7 @@ void RegisterRgbGammaMod()
     mod.out_domain = ColorDomains::BGR;
 
     mod.name = MOD_NAME;
+    mod.version = "001";
     mod.run_function = RgbGamma;
 
     RegisterIspModule(mod);

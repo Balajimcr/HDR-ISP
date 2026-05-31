@@ -65,6 +65,7 @@ void RegisterDePwlMod()
     mod.out_domain = ColorDomains::RAW;
 
     mod.name = MOD_NAME;
+    mod.version = "001";
     mod.run_function = Depwl;
 
     RegisterIspModule(mod);
