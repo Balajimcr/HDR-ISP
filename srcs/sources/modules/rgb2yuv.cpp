@@ -20,15 +20,10 @@ static int Rgb2Yuv(Frame *frame, const IspPrms *isp_prm)
         LOG(ERROR) << "input prms is null";
         return -1;
     }
-    int pixel_idx = 0;
-    int pwl_idx = 0;
-
     int32_t *bgr_i = reinterpret_cast<int32_t *>(frame->data.bgr_s32_i);
     uint8_t *y_o = reinterpret_cast<uint8_t *>(frame->data.yuv_u8_o.y);
     uint8_t *u_o = reinterpret_cast<uint8_t *>(frame->data.yuv_u8_o.u);
     uint8_t *v_o = reinterpret_cast<uint8_t *>(frame->data.yuv_u8_o.v);
-
-    const DePwlPrms *pwl_prm = &(isp_prm->depwl_prm);
 
     FOR_ITER(ih, frame->info.height)
     {

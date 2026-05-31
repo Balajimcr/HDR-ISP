@@ -23,12 +23,16 @@ public:
 
 public:
     Frame(const ImageInfo &img_info);
+    Frame(const Frame &) = delete;
+    Frame &operator=(const Frame &) = delete;
+    Frame(Frame &&) = delete;
+    Frame &operator=(Frame &&) = delete;
 
     ~Frame();
 
-    int ReadFileToFrame(const std::string &file, int size);
+    int ReadFileToFrame(const std::string &file, size_t size);
 
-    int RawMemToFrame(void *src, int len);
+    int RawMemToFrame(void *src, size_t len);
 };
 
 #endif // !ADAS_ISP_FRAME_H

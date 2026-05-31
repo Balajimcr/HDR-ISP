@@ -35,8 +35,9 @@ static inline void ClipMinMax(_T &a, _T max, _T min)
     }
 }
 
-int ReadFileToMem(std::string file_name, void *mem, int size);
-int WriteMemToFile(std::string file_name, void *mem, int size);
+int ReadFileToMem(std::string file_name, void *mem, size_t size);
+int WriteMemToFile(std::string file_name, void *mem, size_t size);
 uint32_t ComputeFileCrc32(const std::string &file_path);
+uint32_t ComputeMemCrc32(const void *data, size_t len);
 
 #endif /* ISP_COMMON_H */

@@ -13,6 +13,7 @@ struct IspPrms
     std::string out_file_path;
     std::string blocks_output_path;
     bool dump_stages = false;
+    uint32_t expected_crc = 0;
 
     std::string sensor_name;
     int blc = 0;

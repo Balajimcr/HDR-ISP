@@ -14,6 +14,7 @@
 #include "common/pipeline.h"
 #include "common/common.h"
 #include <iomanip>
+#include <filesystem>
 
 //#include <opencv2/opencv.hpp>
 //#include <opencv2/core.hpp>
@@ -50,12 +51,14 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    auto width = isp_prms.info.width;
-    auto height = isp_prms.info.height;
+    const size_t width = static_cast<size_t>(isp_prms.info.width);
+    const size_t height = static_cast<size_t>(isp_prms.info.height);
+    const size_t bpp = static_cast<size_t>(isp_prms.info.bpp);
+    const size_t raw_buffer_size = (width * height * bpp) / 8;
 
     Frame frame(isp_prms.info);
 
-    ret = frame.ReadFileToFrame(isp_prms.raw_file, width * height * isp_prms.info.bpp / 8);
+    ret = frame.ReadFileToFrame(isp_prms.raw_file, raw_buffer_size);
     if (ret != 0)
     {
         LOG(ERROR) << "failed to load raw file " << isp_prms.raw_file;
@@ -81,27 +84,34 @@ int main(int argc, char *argv[])
     {
         //cv::Mat isp_result(height, width, CV_8UC3, frame.data.bgr_u8_o);
         //cv::imwrite(isp_prms.out_file_path + "isp_result.png", isp_result);
-        std::string bmp_path = isp_prms.out_file_path + "isp_result.bmp";
-        //std::string raw_path = isp_prms.out_file_path + "isp_result_bgr.raw";
-        if (!WriteBgrMemToBmp(bmp_path.c_str(), (char *)frame.data.bgr_u8_o, width, height, 24))
+        std::filesystem::path out_dir(isp_prms.out_file_path);
+        std::string bmp_path = (out_dir / "isp_result.bmp").string();
+        //std::string raw_path = (out_dir / "isp_result_bgr.raw").string();
+        if (!WriteBgrMemToBmp(bmp_path.c_str(), (char *)frame.data.bgr_u8_o, static_cast<int>(width), static_cast<int>(height), 24))
         {
             LOG(ERROR) << "failed to dump output bmp: " << bmp_path;
             return -1;
         }
         //WriteMemToFile(raw_path, frame.data.bgr_u8_o, width * height * 3);
 
-        uint32_t crc_val = ComputeFileCrc32(bmp_path);
-        const uint32_t kGoldenCrc = 0xEC90E952;
+        // Compute CRC in-memory before disk serialization to avoid I/O overhead
+        uint32_t crc_val = ComputeMemCrc32(frame.data.bgr_u8_o, width * height * 3);
+        const uint32_t kGoldenCrc = isp_prms.expected_crc;
+
+        char crc_computed_str[16];
+        char crc_golden_str[16];
+        snprintf(crc_computed_str, sizeof(crc_computed_str), "%08X", crc_val);
+        snprintf(crc_golden_str, sizeof(crc_golden_str), "%08X", kGoldenCrc);
 
         if (crc_val == kGoldenCrc) {
             LOG(INFO) << "CRC validation passed. Output matches golden reference.";
-            LOG(INFO) << "  Computed CRC: 0x" << std::hex << std::uppercase << crc_val;
-            LOG(INFO) << "  Golden CRC:   0x" << std::hex << std::uppercase << kGoldenCrc;
+            LOG(INFO) << "  Computed CRC: 0x" << crc_computed_str;
+            LOG(INFO) << "  Golden CRC:   0x" << crc_golden_str;
             LOG(INFO) << "success";
         } else {
             LOG(ERROR) << "CRC validation failed. Output does not match golden reference.";
-            LOG(ERROR) << "  Computed CRC: 0x" << std::hex << std::uppercase << crc_val;
-            LOG(ERROR) << "  Golden CRC:   0x" << std::hex << std::uppercase << kGoldenCrc;
+            LOG(ERROR) << "  Computed CRC: 0x" << crc_computed_str;
+            LOG(ERROR) << "  Golden CRC:   0x" << crc_golden_str;
         }
 
         LOG(INFO) << "Output dump: isp_result | " << width << "x" << height

@@ -62,9 +62,9 @@ Frame::Frame(const ImageInfo &img_info)
     FrameDateMalloc(info.width, info.height);
 }
 
-int Frame::RawMemToFrame(void *src, int len)
+int Frame::RawMemToFrame(void *src, size_t len)
 {
-    if (len > (info.width * info.height * 2))
+    if (len > static_cast<size_t>(info.width) * info.height * 2)
     {
         LOG(ERROR) << "Frame Size err";
         return -1;
@@ -77,7 +77,7 @@ int Frame::RawMemToFrame(void *src, int len)
     return -2;
 }
 
-int Frame::ReadFileToFrame(const std::string &file, int size)
+int Frame::ReadFileToFrame(const std::string &file, size_t size)
 {
     return ReadFileToMem(file, data.raw_u8_i, size);
 }

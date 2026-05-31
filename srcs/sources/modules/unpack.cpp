@@ -22,18 +22,23 @@
  */
 static void UnpackRaw10ToRaw16(uint8_t *raw, uint16_t *unpack_raw16, int width, int height)
 {
-    uint8_t *raw10_packed_in = raw;
-    uint16_t *raw16_unpacked_out = unpack_raw16;
-    int pixel_idx = 0;
+    const int pixel_count = width * height;
+    const int full_groups = pixel_count / 4;
 
-    for (int p1 = 0, p2 = 0; p2 < width * height; p1 += 5, p2 += 4)
+    for (int g = 0; g < full_groups; ++g)
     {
-        raw10_packed_in = raw + p1;
-        raw16_unpacked_out = unpack_raw16 + p2;
+        uint8_t *raw10_packed_in = raw + g * 5;
+        uint16_t *raw16_unpacked_out = unpack_raw16 + g * 4;
         raw16_unpacked_out[0] = ((uint16_t)raw10_packed_in[0] << 2) | (((uint16_t)raw10_packed_in[4] >> 6) & 0x03);
         raw16_unpacked_out[1] = ((uint16_t)raw10_packed_in[1] << 2) | (((uint16_t)raw10_packed_in[4] >> 4) & 0x03);
         raw16_unpacked_out[2] = ((uint16_t)raw10_packed_in[2] << 2) | (((uint16_t)raw10_packed_in[4] >> 2) & 0x03);
         raw16_unpacked_out[3] = ((uint16_t)raw10_packed_in[3] << 2) | (((uint16_t)raw10_packed_in[4] >> 0) & 0x03);
+    }
+
+    const int tail = pixel_count % 4;
+    if (tail > 0)
+    {
+        LOG(WARNING) << "RAW10 unpack skipped trailing " << tail << " pixel(s) due to non-4-aligned image size";
     }
 }
 /**
@@ -46,15 +51,21 @@ static void UnpackRaw10ToRaw16(uint8_t *raw, uint16_t *unpack_raw16, int width, 
  */
 static void UnpackRaw12ToRaw16(uint8_t *raw, uint16_t *unpack_raw16, int width, int height)
 {
-    uint8_t *raw12_packed_in = raw;
-    uint16_t *raw16_unpacked_out = unpack_raw16;
+    const int pixel_count = width * height;
+    const int full_groups = pixel_count / 2;
 
-    for (int p1 = 0, p2 = 0; p2 < width * height; p1 += 3, p2 += 2)
+    for (int g = 0; g < full_groups; ++g)
     {
-        raw12_packed_in = raw + p1;
-        raw16_unpacked_out = unpack_raw16 + p2;
+        uint8_t *raw12_packed_in = raw + g * 3;
+        uint16_t *raw16_unpacked_out = unpack_raw16 + g * 2;
         raw16_unpacked_out[0] = (raw12_packed_in[0] << 4) | ((raw12_packed_in[2] >> 4) & 0x0f);
         raw16_unpacked_out[1] = (raw12_packed_in[1] << 4) | ((raw12_packed_in[2] >> 0) & 0x0f);
+    }
+
+    const int tail = pixel_count % 2;
+    if (tail > 0)
+    {
+        LOG(WARNING) << "RAW12 unpack skipped trailing " << tail << " pixel(s) due to non-2-aligned image size";
     }
 }
 
