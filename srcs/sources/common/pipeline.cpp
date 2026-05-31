@@ -67,7 +67,7 @@ static const char *TypeToString(DataPtrTypes type)
     }
 }
 
-static int DumpStageOutput(const std::string &stage_name, Frame *frame, const IspPrms *prms,
+static int DumpStageOutput(int stage_index, const std::string &stage_name, Frame *frame, const IspPrms *prms,
                            ColorDomains domain, DataPtrTypes type)
 {
     if (!prms->dump_stages)
@@ -91,7 +91,9 @@ static int DumpStageOutput(const std::string &stage_name, Frame *frame, const Is
     {
         dir += '/';
     }
-    std::string filepath = dir + stage_name + ".bmp";
+    char index_str[8];
+    snprintf(index_str, sizeof(index_str), "%02d", stage_index);
+    std::string filepath = dir + index_str + "_" + stage_name + ".bmp";
 
     int width = frame->info.width;
     int height = frame->info.height;
@@ -263,14 +265,14 @@ static int DumpStageOutput(const std::string &stage_name, Frame *frame, const Is
 
     if (has_range)
     {
-        LOG(INFO) << "Stage dump: " << stage_name << " | " << width << "x" << height
+        LOG(INFO) << "Stage dump [" << stage_index << "]: " << stage_name << " | " << width << "x" << height
                   << " | " << DomainToString(domain) << "(" << TypeToString(type) << ")"
                   << " | range[" << dbg_min << "-" << dbg_max << "]"
                   << " | " << filepath;
     }
     else
     {
-        LOG(INFO) << "Stage dump: " << stage_name << " | " << width << "x" << height
+        LOG(INFO) << "Stage dump [" << stage_index << "]: " << stage_name << " | " << width << "x" << height
                   << " | " << DomainToString(domain) << "(" << TypeToString(type) << ")"
                   << " | " << filepath;
     }
@@ -357,6 +359,7 @@ int IspPipeline::RunPipe(Frame *frame, const IspPrms *prms)
     }
     // uint64_t start_tick, end_tick;
     LOG(INFO) << "============= user pipeline running ==============";
+    int stage_index = 1;
     for (auto isp_mod : pipe_)
     {
         auto start_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
@@ -365,7 +368,7 @@ int IspPipeline::RunPipe(Frame *frame, const IspPrms *prms)
             LOG(ERROR) << "pipeline run failed, mod " << isp_mod.name;
             return -1;
         }
-        DumpStageOutput(isp_mod.name, frame, prms, isp_mod.out_domain, isp_mod.out_type);
+        DumpStageOutput(stage_index++, isp_mod.name, frame, prms, isp_mod.out_domain, isp_mod.out_type);
         auto end_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
         LOG(INFO) << "mod " << isp_mod.name << "\t time: " << (end_ms - start_ms).count() << "ms";
     }
