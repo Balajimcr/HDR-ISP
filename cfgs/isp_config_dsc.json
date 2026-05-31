@@ -1,6 +1,8 @@
 {
     "raw_file": "./data/DSC_1339_768x512_rggb.raw",
     "out_file_path": "./",
+    "blocks_output_path": "./BlocksOutput/",
+    "dump_stages": false,
     "info": {
         "sensor_name": "dsc",
         "cfa": "RGGB",

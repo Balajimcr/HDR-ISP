@@ -55,6 +55,8 @@ int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
         // raw path
         isp_prm.raw_file = j_root["raw_file"];
         isp_prm.out_file_path = j_root["out_file_path"];
+        isp_prm.blocks_output_path = j_root.value("blocks_output_path", "");
+        isp_prm.dump_stages = j_root.value("dump_stages", false);
         // sensor info
         isp_prm.sensor_name = j_root["info"]["sensor_name"];
         LOG(INFO) << "Sensor Name: " << isp_prm.sensor_name;

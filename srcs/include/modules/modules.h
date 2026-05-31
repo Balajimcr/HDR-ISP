@@ -11,6 +11,8 @@ struct IspPrms
 {
     std::string raw_file;
     std::string out_file_path;
+    std::string blocks_output_path;
+    bool dump_stages = false;
 
     std::string sensor_name;
     int blc = 0;

@@ -1,6 +1,8 @@
 {
     "raw_file": "../data/connan_raw14.raw",
     "out_file_path": "./",
+    "blocks_output_path": "./BlocksOutput",
+    "dump_stages": true,
     "info": {
         "sensor_name": "cannon",
         "cfa": "RGGB",
