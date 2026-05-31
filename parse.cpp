@@ -106,7 +106,7 @@ int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
         LOG(INFO) << "Sensor Resolution: " << isp_prm.info.width << "*" << isp_prm.info.height;
         //
         std::string pipeline = j_root["pipe"];
-        isp_prm.pipe = std::move(split(pipeline, "|"));
+        isp_prm.pipe = split(pipeline, "|");
         // blc
         isp_prm.blc = j_root["blc"];
         // wbgain
