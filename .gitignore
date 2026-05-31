@@ -1,0 +1,25 @@
+# Visual Studio / VS Code cache and user-specific files
+.vs/
+*.user
+*.db
+*.db-shm
+*.db-wal
+*.ipch
+*.opendb
+
+# CMake generated files
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles/
+generate.stamp*
+
+# Build outputs
+Release/
+Debug/
+x64/
+*.dir/
+
+# Application outputs
+*.bmp
+*.raw
+*.log

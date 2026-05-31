@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\blc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\ccm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\clipout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\cns.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\contrast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\demoasic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\depwl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\dpc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\lsc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\ltm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\rgb2yuv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\rgbgamma.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\rns.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\saturation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\sharpen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\unpack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\wbgain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\ygamma.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\modules\yuv2rgb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\common\common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\common\frame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\common\modules.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\sources\common\pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\D\Project_Files\Samsung\HDR-ISP\srcs\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{2B2F1848-31BC-3254-BA50-18DF2552A1CA}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
