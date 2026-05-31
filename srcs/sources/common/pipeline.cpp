@@ -376,7 +376,11 @@ int IspPipeline::RunPipe(Frame *frame, const IspPrms *prms)
             LOG(ERROR) << "pipeline run failed, mod " << isp_mod.name;
             return -1;
         }
-        DumpStageOutput(stage_index++, isp_mod.name, isp_mod.version, frame, prms, isp_mod.out_domain, isp_mod.out_type);
+        if (prms->dump_stages)
+        {
+            DumpStageOutput(stage_index, isp_mod.name, isp_mod.version, frame, prms, isp_mod.out_domain, isp_mod.out_type);
+        }
+        ++stage_index;
         auto end_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch());
         LOG(INFO) << "mod " << isp_mod.name << "(v" << isp_mod.version << ")\t time: " << (end_ms - start_ms).count() << "ms";

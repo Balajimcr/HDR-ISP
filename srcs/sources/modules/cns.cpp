@@ -8,6 +8,7 @@
  */
 
 #include "modules/modules.h"
+#include <algorithm>
 
 #define MOD_NAME "cns"
 
@@ -18,7 +19,8 @@ static int Cns(Frame *frame, const IspPrms *isp_prm)
         LOG(ERROR) << "input prms is null";
         return -1;
     }
-    int pixel_idx = 0;
+    const int width = frame->info.width;
+    const int height = frame->info.height;
 
     uint8_t *u_i = reinterpret_cast<uint8_t *>(frame->data.yuv_u8_i.u);
     uint8_t *v_i = reinterpret_cast<uint8_t *>(frame->data.yuv_u8_i.v);
@@ -32,12 +34,12 @@ static int Cns(Frame *frame, const IspPrms *isp_prm)
     uint8_t u[filter_size];
     uint8_t v[filter_size];
 
-    FOR_ITER(ih, frame->info.height)
+    FOR_ITER(ih, height)
     {
-        FOR_ITER(iw, frame->info.width)
+        FOR_ITER(iw, width)
         {
-            int pixel_idx = ih * frame->info.width + iw;
-            if ((iw < boundary_pixel) || (iw >= (frame->info.width - boundary_pixel)) || (ih < boundary_pixel) || (ih >= (frame->info.height - boundary_pixel))) {
+            int pixel_idx = ih * width + iw;
+            if ((iw < boundary_pixel) || (iw >= (width - boundary_pixel)) || (ih < boundary_pixel) || (ih >= (height - boundary_pixel))) {
                 u_o[pixel_idx] = u_i[pixel_idx];
                 v_o[pixel_idx] = v_i[pixel_idx];
                 continue;
@@ -46,15 +48,15 @@ static int Cns(Frame *frame, const IspPrms *isp_prm)
             int sub_index = 0;
             for (int idy = -boundary_pixel; idy <= boundary_pixel; ++idy) {
                 for (int idx = -boundary_pixel; idx <= boundary_pixel; ++idx) {
-                    int filer_pixel_idx = GET_PIXEL_INDEX((iw + idx), (ih + idy), frame->info.width);
+                    int filer_pixel_idx = GET_PIXEL_INDEX((iw + idx), (ih + idy), width);
                     u[sub_index] = u_i[filer_pixel_idx];
                     v[sub_index] = v_i[filer_pixel_idx];
                     ++sub_index;
                 }
             }
-            //meida filter
-            std::sort(u, u + filter_size);
-            std::sort(v, v + filter_size);
+            // median filter
+            std::nth_element(u, u + filter_center, u + filter_size);
+            std::nth_element(v, v + filter_center, v + filter_size);
                 
             u_o[pixel_idx] = u[filter_center];
             v_o[pixel_idx] = v[filter_center];

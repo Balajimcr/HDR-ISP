@@ -22,9 +22,15 @@ INITIALIZE_EASYLOGGINGPP
 
 extern int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm);
 
+static void SetupLogging()
+{
+    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "%time %level %msg");
+}
+
 
 int main(int argc, char *argv[])
 {
+    SetupLogging();
     LOG(INFO) << "APP Start Running";
 
     if (argc < 2)
