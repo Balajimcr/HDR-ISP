@@ -16,7 +16,7 @@ struct IspPrms
 
     std::string sensor_name;
     int blc = 0;
-    bool data_packed;
+    bool data_packed = false;
     std::list<std::string> pipe;
     ImageInfo info;
     DePwlPrms depwl_prm;
@@ -68,7 +68,6 @@ void RegisterSaturationMod();
 void RegisterContrastMod();
 void RegisterSharpenMod();
 void RegisterLscMod();
-void RegisterDpcMod();
 void RegisterDpcMod();
 void RegisterCnsMod();
 

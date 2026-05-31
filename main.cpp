@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     if (argc < 2)
     {
         LOG(ERROR) << "usage :\n\t ./app isp_cfg.json\n";
-        return 0;
+        return -1;
     }
 
     IspPipeline pipeline;
@@ -49,10 +49,25 @@ int main(int argc, char *argv[])
 
     Frame frame(isp_prms.info);
 
-    frame.ReadFileToFrame(isp_prms.raw_file, width * height * isp_prms.info.bpp / 8);
+    ret = frame.ReadFileToFrame(isp_prms.raw_file, width * height * isp_prms.info.bpp / 8);
+    if (ret != 0)
+    {
+        LOG(ERROR) << "failed to load raw file " << isp_prms.raw_file;
+        return -1;
+    }
 
-    pipeline.MakePipe(isp_prms.pipe);
-    pipeline.PrintPipe();
+    ret = pipeline.MakePipe(isp_prms.pipe);
+    if (ret != 0)
+    {
+        LOG(ERROR) << "failed to create pipeline";
+        return -1;
+    }
+    ret = pipeline.PrintPipe();
+    if (ret != 0)
+    {
+        LOG(ERROR) << "failed to print pipeline";
+        return -1;
+    }
 
     ret = pipeline.RunPipe(&frame, &isp_prms);
 
@@ -62,7 +77,11 @@ int main(int argc, char *argv[])
         //cv::imwrite(isp_prms.out_file_path + "isp_result.png", isp_result);
         std::string bmp_path = isp_prms.out_file_path + "isp_result.bmp";
         //std::string raw_path = isp_prms.out_file_path + "isp_result_bgr.raw";
-        WriteBgrMemToBmp(bmp_path.c_str(), (char *)frame.data.bgr_u8_o, width, height, 24);
+        if (!WriteBgrMemToBmp(bmp_path.c_str(), (char *)frame.data.bgr_u8_o, width, height, 24))
+        {
+            LOG(ERROR) << "failed to dump output bmp: " << bmp_path;
+            return -1;
+        }
         //WriteMemToFile(raw_path, frame.data.bgr_u8_o, width * height * 3);
 
         uint32_t crc_val = ComputeFileCrc32(bmp_path);

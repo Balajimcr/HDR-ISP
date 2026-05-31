@@ -11,6 +11,9 @@
 #include "modules/modules.h"
 #include "common/pipeline.h"
 #include "EasyBMP.h"
+#include <cstdio>
+#include <cstring>
+#include <vector>
 
 #ifdef _WIN32
 #include <direct.h>
@@ -99,12 +102,7 @@ static int DumpStageOutput(int stage_index, const std::string &stage_name, const
     int height = frame->info.height;
     int pixel_count = width * height;
 
-    uint8_t *bgr_u8 = new uint8_t[pixel_count * 3];
-    if (!bgr_u8)
-    {
-        LOG(ERROR) << "Failed to allocate temp buffer for stage dump: " << stage_name;
-        return -1;
-    }
+    std::vector<uint8_t> bgr_u8(pixel_count * 3);
 
     bool has_range = false;
     int32_t dbg_min = 0;
@@ -184,7 +182,6 @@ static int DumpStageOutput(int stage_index, const std::string &stage_name, const
         else
         {
             LOG(WARNING) << "Unsupported raw type for stage dump: " << stage_name;
-            delete[] bgr_u8;
             return -1;
         }
     }
@@ -193,7 +190,7 @@ static int DumpStageOutput(int stage_index, const std::string &stage_name, const
         if (stage_name == "yuv2rgb")
         {
             uint8_t *src = reinterpret_cast<uint8_t *>(frame->data.bgr_u8_o);
-            memcpy(bgr_u8, src, pixel_count * 3);
+            memcpy(bgr_u8.data(), src, pixel_count * 3);
         }
         else if (type == DataPtrTypes::TYPE_INT32)
         {
@@ -218,7 +215,6 @@ static int DumpStageOutput(int stage_index, const std::string &stage_name, const
         else
         {
             LOG(WARNING) << "Unsupported bgr type for stage dump: " << stage_name;
-            delete[] bgr_u8;
             return -1;
         }
     }
@@ -250,12 +246,10 @@ static int DumpStageOutput(int stage_index, const std::string &stage_name, const
     else
     {
         LOG(WARNING) << "Unsupported domain for stage dump: " << stage_name;
-        delete[] bgr_u8;
         return -1;
     }
 
-    bool ok = WriteBgrMemToBmp(filepath.c_str(), reinterpret_cast<char *>(bgr_u8), width, height, 24);
-    delete[] bgr_u8;
+    bool ok = WriteBgrMemToBmp(filepath.c_str(), reinterpret_cast<char *>(bgr_u8.data()), width, height, 24);
 
     if (!ok)
     {
@@ -296,7 +290,6 @@ void IspInit()
     RegisterRgb2YuvMod();
     RegisterSaturationMod();
     RegisterContrastMod();
-    RegisterContrastMod();
     RegisterSharpenMod();
     RegisterLscMod();
     RegisterDpcMod();
@@ -314,17 +307,22 @@ IspPipeline::~IspPipeline()
     pipe_.clear();
 }
 
-IspPipeline::IspPipeline(std::list<std::string> pipeline)
-{
-    IspPipeline();
-    MakePipe(pipeline);
-}
+IspPipeline::IspPipeline(std::list<std::string> pipeline) : IspPipeline() { MakePipe(pipeline); }
 
 int IspPipeline::MakePipe(const std::list<std::string> &pipeline_str)
 {
+    pipe_.clear();
+    is_pipe_vaild_ = false;
+
+    if (pipeline_str.empty())
+    {
+        LOG(ERROR) << "pipeline is empty";
+        return -1;
+    }
+
     IspModule mod;
     IspModule last_mod;
-    for (auto item : pipeline_str)
+    for (const auto &item : pipeline_str)
     {
         if (0 == GetIspModuleFromName(item, mod))
         {
@@ -345,7 +343,8 @@ int IspPipeline::MakePipe(const std::list<std::string> &pipeline_str)
         }
         else
         {
-            LOG(WARNING) << item << " find failed";
+            LOG(ERROR) << item << " find failed";
+            return -1;
         }
     }
     is_pipe_vaild_ = true;
@@ -354,6 +353,12 @@ int IspPipeline::MakePipe(const std::list<std::string> &pipeline_str)
 
 int IspPipeline::RunPipe(Frame *frame, const IspPrms *prms)
 {
+    if (frame == nullptr || prms == nullptr)
+    {
+        LOG(ERROR) << "RunPipe invalid input";
+        return -1;
+    }
+
     if (!is_pipe_vaild_)
     {
         LOG(ERROR) << "pipeline is not vailed..";
@@ -362,16 +367,18 @@ int IspPipeline::RunPipe(Frame *frame, const IspPrms *prms)
     // uint64_t start_tick, end_tick;
     LOG(INFO) << "============= user pipeline running ==============";
     int stage_index = 1;
-    for (auto isp_mod : pipe_)
+    for (const auto &isp_mod : pipe_)
     {
-        auto start_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+        auto start_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch());
         if (isp_mod.run_function(frame, prms) != 0)
         {
             LOG(ERROR) << "pipeline run failed, mod " << isp_mod.name;
             return -1;
         }
         DumpStageOutput(stage_index++, isp_mod.name, isp_mod.version, frame, prms, isp_mod.out_domain, isp_mod.out_type);
-        auto end_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+        auto end_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch());
         LOG(INFO) << "mod " << isp_mod.name << "(v" << isp_mod.version << ")\t time: " << (end_ms - start_ms).count() << "ms";
     }
     LOG(INFO) << "============= user pipeline running end ==============";
@@ -387,7 +394,7 @@ int IspPipeline::PrintPipe()
     }
     int index = 0;
     LOG(INFO) << "============= user pipeline print start ==============";
-    for (auto isp_mod : pipe_)
+    for (const auto &isp_mod : pipe_)
     {
         LOG(INFO) << "mod[" << index++ << "] -> " << isp_mod.name;
     }

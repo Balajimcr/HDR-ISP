@@ -62,36 +62,36 @@ enum class YuvTypes
 struct ImageInfo
 {
     /* data */
-    int width;
-    int height;
+    int width = 0;
+    int height = 0;
 
-    int bpp;
-    int max_val;
+    int bpp = 0;
+    int max_val = 0;
 
-    bool mipi_packed;
+    bool mipi_packed = false;
 
-    CfaTypes cfa;
-    ColorDomains domain;
-    RawDataTypes dt;
-    YuvTypes yuv_type;
+    CfaTypes cfa = CfaTypes::RGGB;
+    ColorDomains domain = ColorDomains::RAW;
+    RawDataTypes dt = RawDataTypes::RAW10;
+    YuvTypes yuv_type = YuvTypes::YUV422_8;
 };
 
 struct ImageMem
 {
     /* all data is double frame, enable pipeline in gpu */
-    void *raw_u8_i;
-    void *raw_u16_i;
-    void *raw_u16_o;
-    void *raw_s32_i;
-    void *raw_s32_o;
-    void *bgr_s32_i;
-    void *bgr_s32_o;
-    void *bgr_u8_o;
+    void *raw_u8_i = nullptr;
+    void *raw_u16_i = nullptr;
+    void *raw_u16_o = nullptr;
+    void *raw_s32_i = nullptr;
+    void *raw_s32_o = nullptr;
+    void *bgr_s32_i = nullptr;
+    void *bgr_s32_o = nullptr;
+    void *bgr_u8_o = nullptr;
     struct YuvMem
     {
-        void *y;
-        void *u;
-        void *v;
+        void *y = nullptr;
+        void *u = nullptr;
+        void *v = nullptr;
     } yuv_f32_i, yuv_f32_o, yuv_u8_i, yuv_u8_o;
 
     // ltm

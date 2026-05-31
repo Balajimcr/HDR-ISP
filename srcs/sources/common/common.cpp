@@ -15,8 +15,13 @@
 #include "common/common.h"
 
 
-size_t ReadFileToMem(std::string file_name, void* mem, int size)
+int ReadFileToMem(std::string file_name, void* mem, int size)
 {
+    if (!mem || size <= 0) {
+        LOG(ERROR) << "ReadFileToMem invalid input";
+        return -1;
+    }
+
     FILE* fp;
 
     fp = fopen(file_name.c_str(), "rb");
@@ -26,16 +31,25 @@ size_t ReadFileToMem(std::string file_name, void* mem, int size)
         return -1;
     }
 
-    auto rd = fread(mem, size, 1, fp);
+    size_t rd = fread(mem, size, 1, fp);
 
     fclose(fp);
 
-    return rd;
+    if (rd != 1) {
+        LOG(ERROR) << file_name << " read size mismatch, expected " << size << " bytes";
+        return -1;
+    }
+    return 0;
 }
 
 
-size_t WriteMemToFile(std::string file_name, void* mem, int size)
+int WriteMemToFile(std::string file_name, void* mem, int size)
 {
+    if (!mem || size <= 0) {
+        LOG(ERROR) << "WriteMemToFile invalid input";
+        return -1;
+    }
+
     FILE* fp;
 
     fp = fopen(file_name.c_str(), "wb+");
@@ -45,11 +59,15 @@ size_t WriteMemToFile(std::string file_name, void* mem, int size)
         return -1;
     }
 
-    int rd = fwrite(mem, size, 1, fp);
+    size_t rd = fwrite(mem, size, 1, fp);
 
     fclose(fp);
 
-    return rd;
+    if (rd != 1) {
+        LOG(ERROR) << file_name << " write size mismatch, expected " << size << " bytes";
+        return -1;
+    }
+    return 0;
 }
 
 uint32_t ComputeFileCrc32(const std::string &file_path)

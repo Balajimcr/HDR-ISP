@@ -19,7 +19,7 @@ using json = nlohmann::json;
 std::list<std::string> split(const std::string &str, const std::string &pattern)
 {
     std::list<std::string> res;
-    if (str == "")
+    if (str.empty() || pattern.empty())
         return res;
     std::string strs = str + pattern;
     size_t pos = strs.find(pattern);
@@ -29,7 +29,7 @@ std::list<std::string> split(const std::string &str, const std::string &pattern)
         std::string temp = strs.substr(0, pos);
         res.push_back(temp);
 
-        strs = strs.substr(pos + 1, strs.size());
+        strs = strs.substr(pos + pattern.size(), strs.size());
         pos = strs.find(pattern);
     }
 
@@ -47,11 +47,9 @@ int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
         return -1;
     }
 
-    json j_root;
-
-    fs >> j_root;
-
     try {
+        json j_root;
+        fs >> j_root;
         // raw path
         isp_prm.raw_file = j_root["raw_file"];
         isp_prm.out_file_path = j_root["out_file_path"];
@@ -78,6 +76,11 @@ int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
         {
             isp_prm.info.cfa = CfaTypes::GRBG;
         }
+        else
+        {
+            LOG(ERROR) << "Unsupported CFA type: " << cfa_str;
+            return -1;
+        }
         LOG(INFO) << "Sensor CFA: " << cfa_str;
 
         auto raw_type_str = j_root["info"]["data_type"];
@@ -96,6 +99,11 @@ int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
         else if (raw_type_str == "RAW16")
         {
             isp_prm.info.dt = RawDataTypes::RAW16;
+        }
+        else
+        {
+            LOG(ERROR) << "Unsupported raw data type: " << raw_type_str;
+            return -1;
         }
         LOG(INFO) << "Sensor DT: " << raw_type_str;
 
@@ -137,6 +145,12 @@ int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
         // pwl
         isp_prm.depwl_prm.pedestal = j_root["depwl"]["pedestal"];
         isp_prm.depwl_prm.pwl_nums = j_root["depwl"]["pwl_nums"];
+        if (isp_prm.depwl_prm.pwl_nums < 1 || isp_prm.depwl_prm.pwl_nums > MAX_PWL_NUMS)
+        {
+            LOG(ERROR) << "depwl pwl_nums out of range: " << isp_prm.depwl_prm.pwl_nums
+                       << ", max supported: " << MAX_PWL_NUMS;
+            return -1;
+        }
         auto pwl_x = j_root["depwl"]["pwl_x"];
         auto pwl_y = j_root["depwl"]["pwl_y"];
         auto pwl_slope = j_root["depwl"]["slope"];
@@ -159,6 +173,12 @@ int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
         isp_prm.ltm_prms.out_bits = j_root["ltm"]["out_bit"];
 
         isp_prm.rgb_gamma.nums = j_root["rgbgamma"]["gammalut_nums"];
+        if (isp_prm.rgb_gamma.nums < 1 || isp_prm.rgb_gamma.nums > MAX_GAMMA_NUMS)
+        {
+            LOG(ERROR) << "rgbgamma gammalut_nums out of range: " << isp_prm.rgb_gamma.nums
+                       << ", max supported: " << MAX_GAMMA_NUMS;
+            return -1;
+        }
         isp_prm.rgb_gamma.in_bits = j_root["rgbgamma"]["in_bit"];
         isp_prm.rgb_gamma.out_bits = j_root["rgbgamma"]["out_bit"];
         auto gamma_curve = j_root["rgbgamma"]["gammalut"];
@@ -174,6 +194,12 @@ int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
         }
 
         isp_prm.y_gamma.nums = j_root["ygamma"]["gammalut_nums"];
+        if (isp_prm.y_gamma.nums < 1 || isp_prm.y_gamma.nums > MAX_GAMMA_NUMS)
+        {
+            LOG(ERROR) << "ygamma gammalut_nums out of range: " << isp_prm.y_gamma.nums
+                       << ", max supported: " << MAX_GAMMA_NUMS;
+            return -1;
+        }
         isp_prm.y_gamma.in_bits = j_root["ygamma"]["in_bit"];
         isp_prm.y_gamma.out_bits = j_root["ygamma"]["out_bit"];
         gamma_curve = j_root["ygamma"]["gammalut"];

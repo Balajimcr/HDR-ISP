@@ -22,11 +22,11 @@ public:
     ImageMem data;
 
 public:
-    Frame(ImageInfo &img_info);
+    Frame(const ImageInfo &img_info);
 
     ~Frame();
 
-    int ReadFileToFrame(std::string file, int size);
+    int ReadFileToFrame(const std::string &file, int size);
 
     int RawMemToFrame(void *src, int len);
 };

@@ -56,7 +56,7 @@ Frame::~Frame()
     SAFE_FREE(data.bgr_u8_o);
 }
 
-Frame::Frame(ImageInfo &img_info)
+Frame::Frame(const ImageInfo &img_info)
 {
     info = img_info;
     FrameDateMalloc(info.width, info.height);
@@ -77,7 +77,7 @@ int Frame::RawMemToFrame(void *src, int len)
     return -2;
 }
 
-int Frame::ReadFileToFrame(std::string file, int size)
+int Frame::ReadFileToFrame(const std::string &file, int size)
 {
-    return (int)ReadFileToMem(file, data.raw_u8_i, size);
+    return ReadFileToMem(file, data.raw_u8_i, size);
 }
