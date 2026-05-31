@@ -61,10 +61,10 @@ int main(int argc, char *argv[])
         std::string bmp_path = isp_prms.out_file_path + "isp_result.bmp";
         std::string raw_path = isp_prms.out_file_path + "isp_result_bgr.raw";
         WriteBgrMemToBmp(bmp_path.c_str(), (char *)frame.data.bgr_u8_o, width, height, 24);
-        WriteMemToFile(raw_path, frame.data.bgr_u8_o, width * height * 3);
+        //WriteMemToFile(raw_path, frame.data.bgr_u8_o, width * height * 3);
         LOG(INFO) << "Output dump: isp_result | " << width << "x" << height
                   << " | BGR(uint8) | " << bmp_path;
-        LOG(INFO) << "Output dump: isp_result_bgr | " << width * height * 3 << " bytes | " << raw_path;
+        //LOG(INFO) << "Output dump: isp_result_bgr | " << width * height * 3 << " bytes | " << raw_path;
         LOG(INFO) << "APP Common Exit";
     }
     else
