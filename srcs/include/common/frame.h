@@ -2,21 +2,35 @@
 #define ADAS_ISP_FRAME_H
 
 #include "common.h"
-
-#define SAFE_FREE(arr)     \
-    do                     \
-    {                      \
-        if (arr)           \
-        {                  \
-            delete[] arr;  \
-            arr = nullptr; \
-        }                  \
-    } while (0)
+#include <memory>
 
 class Frame
 {
 private:
     int FrameDateMalloc(int width, int height);
+    std::unique_ptr<uint8_t[]> raw_u8_i_buf_;
+    std::unique_ptr<uint16_t[]> raw_u16_i_buf_;
+    std::unique_ptr<uint16_t[]> raw_u16_o_buf_;
+    std::unique_ptr<int32_t[]> raw_s32_i_buf_;
+    std::unique_ptr<int32_t[]> raw_s32_o_buf_;
+
+    std::unique_ptr<int32_t[]> bgr_s32_i_buf_;
+    std::unique_ptr<int32_t[]> bgr_s32_o_buf_;
+    std::unique_ptr<uint8_t[]> bgr_u8_o_buf_;
+
+    std::unique_ptr<float[]> yuv_f32_i_y_buf_;
+    std::unique_ptr<float[]> yuv_f32_i_u_buf_;
+    std::unique_ptr<float[]> yuv_f32_i_v_buf_;
+    std::unique_ptr<float[]> yuv_f32_o_y_buf_;
+    std::unique_ptr<float[]> yuv_f32_o_u_buf_;
+    std::unique_ptr<float[]> yuv_f32_o_v_buf_;
+
+    std::unique_ptr<uint8_t[]> yuv_u8_i_y_buf_;
+    std::unique_ptr<uint8_t[]> yuv_u8_i_u_buf_;
+    std::unique_ptr<uint8_t[]> yuv_u8_i_v_buf_;
+    std::unique_ptr<uint8_t[]> yuv_u8_o_y_buf_;
+    std::unique_ptr<uint8_t[]> yuv_u8_o_u_buf_;
+    std::unique_ptr<uint8_t[]> yuv_u8_o_v_buf_;
 public:
     ImageInfo info;
     ImageMem data;
