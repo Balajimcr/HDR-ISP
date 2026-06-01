@@ -2650,7 +2650,7 @@ void Writer::triggerDispatch(void) {
 	  }
 	  m_proceed = false;
 	  }
-	catch(std::exception & ex){
+	catch(const std::exception &){
 		// Extremely low memory situation; don't let exception be unhandled.
 	}
 }

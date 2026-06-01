@@ -19,6 +19,7 @@
  *************************************************/
 
 #include "EasyBMP.h"
+#include <memory>
 
 /* These functions are defined in EasyBMP.h */
 
@@ -639,7 +640,6 @@ bool BMP::WriteToFile(const char *FileName)
     int i, j;
     if (BitDepth != 16)
     {
-        ebmpBYTE *Buffer;
         int BufferSize = (int)((Width * BitDepth) / 8.0);
         while (8 * BufferSize < Width * BitDepth)
         {
@@ -650,7 +650,7 @@ bool BMP::WriteToFile(const char *FileName)
             BufferSize++;
         }
 
-        Buffer = new ebmpBYTE[BufferSize];
+        std::unique_ptr<ebmpBYTE[]> Buffer(new ebmpBYTE[BufferSize]);
         for (j = 0; j < BufferSize; j++)
         {
             Buffer[j] = 0;
@@ -663,27 +663,27 @@ bool BMP::WriteToFile(const char *FileName)
             bool Success = false;
             if (BitDepth == 32)
             {
-                Success = Write32bitRow(Buffer, BufferSize, j);
+                    Success = Write32bitRow(Buffer.get(), BufferSize, j);
             }
             if (BitDepth == 24)
             {
-                Success = Write24bitRow(Buffer, BufferSize, j);
+                    Success = Write24bitRow(Buffer.get(), BufferSize, j);
             }
             if (BitDepth == 8)
             {
-                Success = Write8bitRow(Buffer, BufferSize, j);
+                    Success = Write8bitRow(Buffer.get(), BufferSize, j);
             }
             if (BitDepth == 4)
             {
-                Success = Write4bitRow(Buffer, BufferSize, j);
+                    Success = Write4bitRow(Buffer.get(), BufferSize, j);
             }
             if (BitDepth == 1)
             {
-                Success = Write1bitRow(Buffer, BufferSize, j);
+                    Success = Write1bitRow(Buffer.get(), BufferSize, j);
             }
             if (Success)
             {
-                int BytesWritten = (int)fwrite((char *)Buffer, 1, BufferSize, fp);
+                int BytesWritten = (int)fwrite((char *)Buffer.get(), 1, BufferSize, fp);
                 if (BytesWritten != BufferSize)
                 {
                     Success = false;
@@ -700,7 +700,6 @@ bool BMP::WriteToFile(const char *FileName)
             j--;
         }
 
-        delete[] Buffer;
     }
 
     if (BitDepth == 16)
@@ -1041,10 +1040,8 @@ bool BMP::ReadFromFile(const char *FileName)
             cout << "EasyBMP Warning: Extra meta data detected in file " << FileName << endl
                  << "                 Data will be skipped." << endl;
         }
-        ebmpBYTE *TempSkipBYTE;
-        TempSkipBYTE = new ebmpBYTE[BytesToSkip];
-        SafeFread((char *)TempSkipBYTE, BytesToSkip, 1, fp);
-        delete[] TempSkipBYTE;
+        std::unique_ptr<ebmpBYTE[]> TempSkipBYTE(new ebmpBYTE[BytesToSkip]);
+        SafeFread((char *)TempSkipBYTE.get(), BytesToSkip, 1, fp);
     }
 
     // This code reads 1, 4, 8, 24, and 32-bpp files
@@ -1062,12 +1059,11 @@ bool BMP::ReadFromFile(const char *FileName)
         {
             BufferSize++;
         }
-        ebmpBYTE *Buffer;
-        Buffer = new ebmpBYTE[BufferSize];
+        std::unique_ptr<ebmpBYTE[]> Buffer(new ebmpBYTE[BufferSize]);
         j = Height - 1;
         while (j > -1)
         {
-            int BytesRead = (int)fread((char *)Buffer, 1, BufferSize, fp);
+            int BytesRead = (int)fread((char *)Buffer.get(), 1, BufferSize, fp);
             if (BytesRead < BufferSize)
             {
                 j = -1;
@@ -1081,23 +1077,23 @@ bool BMP::ReadFromFile(const char *FileName)
                 bool Success = false;
                 if (BitDepth == 1)
                 {
-                    Success = Read1bitRow(Buffer, BufferSize, j);
+                    Success = Read1bitRow(Buffer.get(), BufferSize, j);
                 }
                 if (BitDepth == 4)
                 {
-                    Success = Read4bitRow(Buffer, BufferSize, j);
+                    Success = Read4bitRow(Buffer.get(), BufferSize, j);
                 }
                 if (BitDepth == 8)
                 {
-                    Success = Read8bitRow(Buffer, BufferSize, j);
+                    Success = Read8bitRow(Buffer.get(), BufferSize, j);
                 }
                 if (BitDepth == 24)
                 {
-                    Success = Read24bitRow(Buffer, BufferSize, j);
+                    Success = Read24bitRow(Buffer.get(), BufferSize, j);
                 }
                 if (BitDepth == 32)
                 {
-                    Success = Read32bitRow(Buffer, BufferSize, j);
+                    Success = Read32bitRow(Buffer.get(), BufferSize, j);
                 }
                 if (!Success)
                 {
@@ -1110,7 +1106,6 @@ bool BMP::ReadFromFile(const char *FileName)
             }
             j--;
         }
-        delete[] Buffer;
     }
 
     if (BitDepth == 16)
@@ -1165,10 +1160,8 @@ bool BMP::ReadFromFile(const char *FileName)
                      << FileName << endl
                      << "                 Data will be skipped." << endl;
             }
-            ebmpBYTE *TempSkipBYTE;
-            TempSkipBYTE = new ebmpBYTE[BytesToSkip];
-            SafeFread((char *)TempSkipBYTE, BytesToSkip, 1, fp);
-            delete[] TempSkipBYTE;
+            std::unique_ptr<ebmpBYTE[]> TempSkipBYTE(new ebmpBYTE[BytesToSkip]);
+            SafeFread((char *)TempSkipBYTE.get(), BytesToSkip, 1, fp);
         }
 
         // determine the red, green and blue shifts
@@ -2047,7 +2040,8 @@ bool Rescale(BMP &InputImage, char mode, int NewDimension)
         if (EasyBMPwarnings)
         {
             char ErrorMessage[1024];
-            sprintf(ErrorMessage, "EasyBMP Error: Unknown rescale mode %c requested\n", mode);
+            snprintf(ErrorMessage, sizeof(ErrorMessage),
+                     "EasyBMP Error: Unknown rescale mode %c requested\n", mode);
             cout << ErrorMessage;
         }
         return false;
