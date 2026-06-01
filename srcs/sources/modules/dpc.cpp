@@ -36,6 +36,8 @@ static int Dpc(Frame *frame, const IspPrms *isp_prm)
         {
 
             if ((iw < 2) || (iw >= (frame->info.width - 2)) || (ih < 2) || (ih >= (frame->info.height - 2))) {
+                int pixel_idx = GET_PIXEL_INDEX(iw, ih, frame->info.width);
+                raw32_out[pixel_idx] = raw32_in[pixel_idx];
                 continue;
             }
 

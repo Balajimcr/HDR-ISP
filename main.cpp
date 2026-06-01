@@ -21,18 +21,20 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-extern int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm);
+#include "common/parse.h"
 
 static void SetupLogging()
 {
-    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "%time %level %msg");
+    el::Loggers::reconfigureAllLoggers(
+        el::ConfigurationType::Format,
+        "%datetime{%H:%m:%s} | %level | %msg");
 }
 
 
 int main(int argc, char *argv[])
 {
     SetupLogging();
-    LOG(INFO) << "APP Start Running";
+    LOG(INFO) << "================ HDR-ISP PIPELINE RUN ================";
 
     if (argc < 2)
     {
@@ -55,6 +57,11 @@ int main(int argc, char *argv[])
     const size_t height = static_cast<size_t>(isp_prms.info.height);
     const size_t bpp = static_cast<size_t>(isp_prms.info.bpp);
     const size_t raw_buffer_size = (width * height * bpp) / 8;
+    LOG(INFO) << "Title | Sensor=" << isp_prms.sensor_name
+              << " | CFA=" << static_cast<int>(isp_prms.info.cfa)
+              << " | DT=" << static_cast<int>(isp_prms.info.dt)
+              << " | Size=" << width << "x" << height
+              << " | PipeStages=" << isp_prms.pipe.size();
 
     Frame frame(isp_prms.info);
 

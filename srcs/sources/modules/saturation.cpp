@@ -41,8 +41,8 @@ static int Saturation(Frame *frame, const IspPrms *isp_prm)
             int u_tmp = u_i[pixel_idx] - 128;
             int v_tmp = v_i[pixel_idx] - 128;
 
-            int u = static_cast<uint8_t>(u_tmp * cos_val + v_tmp * sin_val + 128);
-            int v = static_cast<uint8_t>(v_tmp * cos_val + u_tmp * sin_val + 128);
+            int u = static_cast<uint8_t>(u_tmp * cos_val - v_tmp * sin_val + 128);
+            int v = static_cast<uint8_t>(u_tmp * sin_val + v_tmp * cos_val + 128);
 
             ClipMinMax(u, 255, 0);
             ClipMinMax(v, 255, 0);

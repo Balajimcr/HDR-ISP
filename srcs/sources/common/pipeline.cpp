@@ -13,6 +13,8 @@
 #include "EasyBMP.h"
 #include <cstdio>
 #include <cstring>
+#include <iomanip>
+#include <sstream>
 #include <vector>
 
 #ifdef _WIN32
@@ -300,7 +302,6 @@ IspPipeline::IspPipeline()
 {
     pipe_.clear();
     IspInit();
-    ShowAllIspModules();
 }
 IspPipeline::~IspPipeline()
 {
@@ -365,7 +366,9 @@ int IspPipeline::RunPipe(Frame *frame, const IspPrms *prms)
         return -1;
     }
     // uint64_t start_tick, end_tick;
-    LOG(INFO) << "============= user pipeline running ==============";
+    LOG(INFO) << "+----+----------------+------+----------+----------+----------+";
+    LOG(INFO) << "| ID | Module         | Ver  | InDomain | OutDomain| Time(ms) |";
+    LOG(INFO) << "+----+----------------+------+----------+----------+----------+";
     int stage_index = 1;
     for (const auto &isp_mod : pipe_)
     {
@@ -383,9 +386,17 @@ int IspPipeline::RunPipe(Frame *frame, const IspPrms *prms)
         ++stage_index;
         auto end_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch());
-        LOG(INFO) << "mod " << isp_mod.name << "(v" << isp_mod.version << ")\t time: " << (end_ms - start_ms).count() << "ms";
+        std::ostringstream row;
+        row << "| " << std::setw(2) << (stage_index - 1)
+            << " | " << std::left << std::setw(14) << isp_mod.name
+            << " | " << std::setw(4) << isp_mod.version
+            << " | " << std::setw(8) << DomainToString(isp_mod.in_domain)
+            << " | " << std::setw(8) << DomainToString(isp_mod.out_domain)
+            << " | " << std::right << std::setw(8) << (end_ms - start_ms).count()
+            << " |";
+        LOG(INFO) << row.str();
     }
-    LOG(INFO) << "============= user pipeline running end ==============";
+    LOG(INFO) << "+----+----------------+------+----------+----------+----------+";
     return 0;
 }
 
@@ -397,11 +408,20 @@ int IspPipeline::PrintPipe()
         return -1;
     }
     int index = 0;
-    LOG(INFO) << "============= user pipeline print start ==============";
+    LOG(INFO) << "+----+----------------+------+----------+----------+";
+    LOG(INFO) << "| ID | Module         | Ver  | InType   | OutType  |";
+    LOG(INFO) << "+----+----------------+------+----------+----------+";
     for (const auto &isp_mod : pipe_)
     {
-        LOG(INFO) << "mod[" << index++ << "] -> " << isp_mod.name;
+        std::ostringstream row;
+        row << "| " << std::setw(2) << index++
+            << " | " << std::left << std::setw(14) << isp_mod.name
+            << " | " << std::setw(4) << isp_mod.version
+            << " | " << std::setw(8) << TypeToString(isp_mod.in_type)
+            << " | " << std::setw(8) << TypeToString(isp_mod.out_type)
+            << " |";
+        LOG(INFO) << row.str();
     }
-    LOG(INFO) << "============= user pipeline print end ==============";
+    LOG(INFO) << "+----+----------------+------+----------+----------+";
     return 0;
 }

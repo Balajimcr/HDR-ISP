@@ -11,6 +11,7 @@
 
 #include "common/common.h"
 #include "modules/modules.h"
+#include "common/parse.h"
 #include "json.hpp"
 #include <fstream>
 
@@ -36,7 +37,7 @@ std::list<std::string> split(const std::string &str, const std::string &pattern)
     return res;
 }
 
-int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
+int ParseIspCfgFile(const std::string& cfg_file_path, IspPrms &isp_prm)
 {
 
     std::ifstream fs(cfg_file_path);
@@ -55,10 +56,12 @@ int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
         isp_prm.out_file_path = j_root["out_file_path"];
         isp_prm.blocks_output_path = j_root.value("blocks_output_path", "");
         isp_prm.dump_stages = j_root.value("dump_stages", false);
-        isp_prm.expected_crc = j_root.value("expected_crc", 0);
+        auto expected_crc_str = j_root.value("expected_crc", "");
+        if (!expected_crc_str.empty()) {
+            isp_prm.expected_crc = static_cast<uint32_t>(std::stoul(expected_crc_str, nullptr, 16));
+        }
         // sensor info
         isp_prm.sensor_name = j_root["info"]["sensor_name"];
-        LOG(INFO) << "Sensor Name: " << isp_prm.sensor_name;
 
         auto cfa_str = j_root["info"]["cfa"];
         if (cfa_str == "RGGB")
@@ -82,7 +85,6 @@ int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
             LOG(ERROR) << "Unsupported CFA type: " << cfa_str;
             return -1;
         }
-        LOG(INFO) << "Sensor CFA: " << cfa_str;
 
         auto raw_type_str = j_root["info"]["data_type"];
         if (raw_type_str == "RAW10")
@@ -106,7 +108,6 @@ int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
             LOG(ERROR) << "Unsupported raw data type: " << raw_type_str;
             return -1;
         }
-        LOG(INFO) << "Sensor DT: " << raw_type_str;
 
         isp_prm.info.bpp = static_cast<int>(j_root["info"]["bpp"]);
         int max_bit = int(j_root["info"]["max_bit"]);
@@ -114,7 +115,6 @@ int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
         isp_prm.info.width = static_cast<int>(j_root["info"]["width"]);
         isp_prm.info.height = static_cast<int>(j_root["info"]["height"]);
         isp_prm.info.mipi_packed = static_cast<int>(j_root["info"]["mipi_packed"]);
-        LOG(INFO) << "Sensor Resolution: " << isp_prm.info.width << "*" << isp_prm.info.height;
         //
         std::string pipeline = j_root["pipe"];
         isp_prm.pipe = split(pipeline, "|");
@@ -265,6 +265,5 @@ int ParseIspCfgFile(const std::string cfg_file_path, IspPrms &isp_prm)
 
 
     fs.close();
-    LOG(INFO) << "parse exit";
     return 0;
 }

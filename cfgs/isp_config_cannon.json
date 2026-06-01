@@ -3,6 +3,7 @@
     "out_file_path": "./",
     "blocks_output_path": "./BlocksOutput",
     "dump_stages": false,
+    "expected_crc": "0x5C78ADB0",
     "info": {
         "sensor_name": "cannon",
         "cfa": "RGGB",

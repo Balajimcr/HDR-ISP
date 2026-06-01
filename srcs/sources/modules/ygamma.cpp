@@ -39,6 +39,11 @@ static int YGamma(Frame *frame, const IspPrms *isp_prm)
 
             float cuvre_id_f = y * step_coff;
             int curve_id = static_cast<int>(cuvre_id_f);
+            if (curve_id < 0) {
+                curve_id = 0;
+            } else if (curve_id >= (gamma_prm.nums - 1)) {
+                curve_id = gamma_prm.nums - 2;
+            }
             // scale to 0~1
             float scale = (cuvre_id_f - curve_id) * (gamma_prm.curve[curve_id + 1] - gamma_prm.curve[curve_id]) + gamma_prm.curve[curve_id];
             // get scale value
