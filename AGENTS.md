@@ -1,4 +1,4 @@
-# HDR-ISP Agent Guide
+<!-- HDR-ISP Agent Guide -->
 
 This file is intended for AI coding agents working on the HDR-ISP project. The project is an Image Signal Processing (ISP) pipeline written in C++ for HDR CMOS image sensors.
 
@@ -6,11 +6,11 @@ This file is intended for AI coding agents working on the HDR-ISP project. The p
 
 ## Project Overview
 
-HDR-ISP is a modular, CPU-based ISP pipeline targeting embedded deployment. The core ISP algorithm modules are written in C style for portability, while the framework (pipeline orchestration, configuration parsing, and I/O) is written in C++.
+HDR-ISP is a modular, CPU-based ISP pipeline targeting embedded deployment. The core ISP algorithm modules are written in C style for portability, while the framework (pipeline orchestration, configuration parsing, and I/O) is written in modern C++.
 
 - **Repository**: `https://github.com/JokerEyeAdas/HDR-ISP`
-- **Language**: C++ (framework), C-style (ISP modules)
-- **License**: Copyright (c) of ADAS_EYES 2023 (see source headers)
+- **Language**: C++17 (framework), C-style (ISP modules)
+- **License**: MIT License - Copyright (c) 2026 Balaji R (see source headers)
 - **No external library dependencies** — all third-party code is vendored under `thirdparty/`.
 
 ### Supported ISP Modules
@@ -21,14 +21,14 @@ HDR-ISP is a modular, CPU-based ISP pipeline targeting embedded deployment. The 
 | RGB | `ltm` (local tone mapping), `rgbgamma`, `ccm` (color correct matrix), `rgb2yuv` |
 | YUV | `ygamma`, `contrast`, `sharpen` (USM), `cns` (chroma noise filter), `saturation`, `yuv2rgb` |
 
-> **Note**: `rns` (raw noise filter) is listed in the README but is **not yet implemented**.
+> **Note**: `rns` (raw noise filter) and `clipout` (crop / final output) exist as stub files under `srcs/sources/modules/` but are **not yet implemented** (no registration, no runtime logic).
 
 ---
 
 ## Technology Stack
 
 - **Build System**: CMake (minimum version 3.0)
-- **Compiler**: C++11 or later (tested with VS2019 on Windows, GCC on Linux)
+- **Compiler**: C++17 or later (tested with VS2019 on Windows, GCC on Linux)
 - **Logging**: [easylogging++](https://github.com/amrayn/easyloggingpp) (vendored in `thirdparty/easylog`)
 - **Image I/O**: [EasyBMP](https://easybmp.sourceforge.net/) (vendored in `thirdparty/easybmp`) — outputs `.bmp` and raw BGR files
 - **JSON Parsing**: [nlohmann/json](https://github.com/nlohmann/json) (single-header, vendored in `thirdparty/json/nlohmann`)
@@ -41,24 +41,25 @@ HDR-ISP is a modular, CPU-based ISP pipeline targeting embedded deployment. The 
 ```
 HDR-ISP/
 ├── CMakeLists.txt          # Root CMake: builds executable, links easylog, easybmp, modules
-├── main.cpp                # Entry point: loads config, builds Frame & Pipeline, runs ISP
+├── main.cpp                # Entry point: loads config, builds Frame & Pipeline, runs ISP, validates CRC
 ├── parse.cpp               # JSON config parser (nlohmann/json)
 ├── srcs/
 │   ├── CMakeLists.txt      # Builds the `modules` static library
 │   ├── include/
 │   │   ├── common/         # Framework headers
-│   │   │   ├── common.h    # Macros (FOR_ITER, GET_PIXEL_INDEX, ClipMinMax, SwapMem), file I/O
+│   │   │   ├── common.h    # Macros (FOR_ITER, GET_PIXEL_INDEX, ClipMinMax, SwapMem), file I/O, CRC
 │   │   │   ├── types.h     # Enums (CfaTypes, ColorDomains, RawDataTypes, etc.) and parameter structs
 │   │   │   ├── frame.h     # Frame class: memory allocation, raw data loading
-│   │   │   └── pipeline.h  # IspPipeline class: module chain builder and runner
+│   │   │   ├── pipeline.h  # IspPipeline class: module chain builder and runner
+│   │   │   └── parse.h     # ParseIspCfgFile declaration
 │   │   └── modules/
 │   │       └── modules.h   # Module registry (IspModule, IspPrms) and registration function declarations
 │   └── sources/
 │       ├── common/         # Framework implementations
-│       │   ├── common.cpp  # ReadFileToMem / WriteMemToFile
-│       │   ├── frame.cpp   # Frame memory management (double-buffered allocations)
+│       │   ├── common.cpp  # ReadFileToMem / WriteMemToFile / CRC32 helpers
+│       │   ├── frame.cpp   # Frame memory management (double-buffered allocations via unique_ptr)
 │       │   ├── modules.cpp # Global module registry (std::map<std::string, IspModule>)
-│       │   └── pipeline.cpp# Pipeline construction, validation, and execution with timing logs
+│       │   └── pipeline.cpp# Pipeline construction, validation, execution, and per-stage BMP dump
 │       └── modules/        # Individual ISP module implementations
 │           ├── unpack.cpp
 │           ├── depwl.cpp
@@ -77,7 +78,8 @@ HDR-ISP/
 │           ├── cns.cpp
 │           ├── saturation.cpp
 │           ├── yuv2rgb.cpp
-│           └── clipout.cpp
+│           ├── clipout.cpp # Stub — not registered
+│           └── rns.cpp     # Stub — not registered
 ├── thirdparty/
 │   ├── easylog/            # easylogging++
 │   ├── easybmp/            # EasyBMP library + sample
@@ -87,6 +89,7 @@ HDR-ISP/
 │   └── isp_config_dsc.json
 ├── data/                   # Sample raw image files (.raw)
 ├── docs/                   # Documentation, images, Chinese readme
+├── Release/                # Pre-built Windows executable + run.bat
 └── build/                  # CMake build output (user-created)
 ```
 
@@ -113,6 +116,7 @@ make -j12
 - IDE: VS Code
 - Tools: CMake, Visual Studio 2019 C++ build tools (x64 compiler)
 - In VS Code, select `Debug` or `Release`, compiler `xxx-amd64`, then **Build All**.
+- Alternatively, use the provided `Release/run.bat` after building.
 
 ### CMake Targets
 
@@ -140,8 +144,13 @@ cp -r ../cfgs/ ./
 
 On success, the application writes:
 - `isp_result.bmp` — final BGR image (via EasyBMP)
-- `isp_result_bgr.raw` — raw BGR pixel data
 - `myeasylog.log` — execution log (via easylogging++)
+
+If the JSON config contains `dump_stages: true`, the pipeline will also write intermediate stage images to `blocks_output_path` (or `<out_file_path>/BlocksOutput` by default) as `NN_module_name_vXXX.bmp`.
+
+### CRC Validation
+
+`main.cpp` computes a CRC32 checksum of the final BGR output in memory and compares it against the `expected_crc` field in the JSON config (hex string, e.g., `"0x5C78ADB0"`). The result is printed to the log as passed or failed.
 
 ---
 
@@ -151,6 +160,9 @@ The ISP pipeline and all module parameters are defined in a JSON file. Key secti
 
 - `raw_file`: Path to input RAW image
 - `out_file_path`: Directory for output files
+- `blocks_output_path`: Directory for intermediate stage dumps (optional; defaults to `<out_file_path>/BlocksOutput`)
+- `dump_stages`: Boolean — when `true`, each pipeline stage output is saved as a BMP
+- `expected_crc`: Hex string for golden CRC32 validation of the final output (e.g., `"0x5C78ADB0"`)
 - `info`: Sensor metadata (`sensor_name`, `cfa`, `data_type`, `bpp`, `max_bit`, `width`, `height`, `mipi_packed`)
 - `pipe`: Pipeline string, e.g. `unpack|depwl|blc|lsc|dpc|wbgain|demoasic|ccm|ltm|rgbgamma|rgb2yuv|ygamma|contrast|sharpen|cns|saturation|yuv2rgb`
 - Per-module parameters: `blc`, `lsc`, `depwl`, `wb_gain`, `ccm`, `ltm`, `rgbgamma`, `rgb2yuv`, `ygamma`, `saturation`, `contrast`, `sharpen`, `dpc`
@@ -160,6 +172,8 @@ The ISP pipeline and all module parameters are defined in a JSON file. Key secti
 - `lsc.mesh_height_nums` must equal `10` (`kLscMeshPointVNums`)
 - `wb_gain` arrays must have exactly 4 elements (R, G, G, B)
 - `ccm` matrices are 3x3 but only `d65_ccm` is actively parsed in `parse.cpp` (the others are present in JSON for future use)
+- `depwl.pwl_nums` must be between `1` and `MAX_PWL_NUMS` (`24`)
+- `rgbgamma.gammalut_nums` and `ygamma.gammalut_nums` must be between `1` and `MAX_GAMMA_NUMS` (`21`)
 
 ---
 
@@ -174,6 +188,7 @@ Every ISP module follows a strict registration pattern:
 
 The `IspModule` struct declares:
 - `name`: String identifier used in the JSON `pipe` field
+- `version`: Version string (logged but not semantically checked)
 - `in_type` / `out_type`: `DataPtrTypes` enum (e.g., `TYPE_UINT8`, `TYPE_INT32`)
 - `in_domain` / `out_domain`: `ColorDomains` enum (`RAW`, `BGR`, `YUV`)
 - `run_function`: `std::function<int(Frame *, const IspPrms *)>`
@@ -183,6 +198,7 @@ The `IspModule` struct declares:
 1. `IspPipeline::MakePipe()` parses the `pipe` string into a `std::list<IspModule>`.
 2. It validates that each module's `in_type` and `in_domain` match the previous module's `out_type` and `out_domain`.
 3. `IspPipeline::RunPipe()` iterates the list, calling each `run_function`, and logs per-module execution time.
+4. If `dump_stages` is enabled, `DumpStageOutput()` converts the module's output buffer to an 8-bit grayscale or BGR BMP and writes it to disk.
 
 ### Memory Model & Double Buffering
 
@@ -191,7 +207,9 @@ The `IspModule` struct declares:
 - RGB domain: `bgr_s32_i`, `bgr_s32_o`, `bgr_u8_o`
 - YUV domain: `yuv_f32_i/o`, `yuv_u8_i/o`
 
-Buffers are padded to `(width + 8) * (height + 8)` pixels. Modules typically read from an "input" buffer and write to an "output" buffer, then call `SwapMem()` to flip the pointers for the next module.
+Buffers are padded to `(width + 8) * (height + 8)` pixels. Memory is managed internally via `std::unique_ptr`; modules access buffers through the raw pointers exposed in `ImageMem data`.
+
+Modules typically read from an "input" buffer and write to an "output" buffer, then call `SwapMem()` to flip the pointers for the next module.
 
 ### Color Domain Transitions
 
@@ -208,19 +226,19 @@ Modules must declare the correct domain transition in their registration descrip
   ```cpp
   /**
    * @file filename.cpp
-   * @author joker.mao (joker_mao@163.com)
+   * @author Balaji R (balajimcr@gmail.com)
    * @brief Brief description
    * @version 0.1
    * @date YYYY-MM-DD
    *
-   * Copyright (c) of ADAS_EYES 2023
+   * MIT License - Copyright (c) 2026 Balaji R
    *
    */
   ```
 - **Macros**: Use project macros for iteration (`FOR_ITER`), pixel indexing (`GET_PIXEL_INDEX`), clipping (`ClipMinMax`), and pointer swapping (`SwapMem`).
 - **Null checks**: Every module function must validate `frame` and `isp_prm` at entry.
 - **Logging**: Use `LOG(INFO)` / `LOG(ERROR)` / `LOG(WARNING)` from easylogging++. Do not use `std::cout` in production code.
-- **Memory**: The project uses raw `new` / `delete[]` (managed inside `Frame`). Do not introduce `std::vector` or other STL containers for pixel buffers unless the architecture is explicitly refactored.
+- **Memory**: Pixel buffers are managed by `std::unique_ptr` inside `Frame`. Do not introduce `std::vector` or other STL containers for pixel buffers unless the architecture is explicitly refactored.
 - **Type casts**: Use `reinterpret_cast<>` when converting `void*` frame buffers to typed pointers.
 - **Module name**: Define `#define MOD_NAME "module_name"` at the top of each module file and use it during registration.
 
@@ -234,12 +252,14 @@ Validation is done manually:
 1. Build the project.
 2. Run with a known config + raw file (e.g., `isp_config_dsc.json` + `DSC_1339_768x512_rggb.raw`).
 3. Inspect `isp_result.bmp` visually and check `myeasylog.log` for timing and errors.
+4. Verify `CRC validation passed` in the log when `expected_crc` is configured.
 
 If you add new modules or modify existing ones:
 - Test with both provided configs (`isp_config_cannon.json`, `isp_config_dsc.json`).
 - Verify the pipeline string in JSON still matches the module's registered `name`.
 - Check that `in_type`/`in_domain` and `out_type`/`out_domain` compatibility is maintained with neighbors in the pipeline.
 - Ensure no memory leaks or buffer overruns (buffer size is `(width+8)*(height+8)`).
+- If you change output bit-depth or domain, update `DumpStageOutput` in `pipeline.cpp` so stage dumps remain accurate.
 
 ---
 
@@ -253,14 +273,15 @@ If you add new modules or modify existing ones:
 6. Add the corresponding JSON parsing logic in `parse.cpp` if the module requires new parameters.
 7. Add the parameter struct to `srcs/include/common/types.h` and extend `IspPrms` in `srcs/include/modules/modules.h`.
 8. Update the JSON config file(s) in `cfgs/` with the new parameters.
+9. If the module introduces a new domain or data-type combination, update `DumpStageOutput()` in `pipeline.cpp` so that `dump_stages` can visualize it.
 
 ---
 
 ## Security Considerations
 
-- The project reads raw binary files and JSON configs from disk using `fopen` / `fread` and `std::ifstream`. There is **no input sanitization** beyond size checks in `Frame::RawMemToFrame`.
-- File paths come directly from the JSON config (`raw_file`, `out_file_path`). Ensure paths are trustworthy.
-- Memory allocation in `Frame::FrameDateMalloc` uses `new[]` with sizes derived from `width * height`. Very large dimensions could cause `std::bad_alloc`.
+- The project reads raw binary files and JSON configs from disk using `fopen` / `fread` and `std::ifstream`. There is **no input sanitization** beyond size checks in `Frame::RawMemToFrame` and array-length checks in `parse.cpp`.
+- File paths come directly from the JSON config (`raw_file`, `out_file_path`, `blocks_output_path`). Ensure paths are trustworthy.
+- Memory allocation in `Frame::FrameDateMalloc` uses `std::make_unique` with sizes derived from `width * height`. Very large dimensions could cause `std::bad_alloc`.
 - No cryptography, network I/O, or privilege escalation paths exist in this codebase.
 
 ---
@@ -269,4 +290,6 @@ If you add new modules or modify existing ones:
 
 - **"pipeline is not vailed"**: A module's output type/domain does not match the next module's input type/domain. Check registration descriptors.
 - **"parse failed"**: JSON missing a required field or array size mismatch (e.g., `lsc` mesh dimensions, `wb_gain` length). Check `myeasylog.log` for the exact error.
-- **OpenCV references**: Old commented-out OpenCV code remains in `main.cpp` and `parse.cpp`. Do not uncomment unless you intend to restore the dependency.
+- **OpenCV references**: Old commented-out OpenCV code remains in `CMakeLists.txt`, `main.cpp`, and `parse.cpp`. Do not uncomment unless you intend to restore the dependency.
+- **`RegisterWbGaincMod` typo**: The registration function for white-balance gain is named `RegisterWbGaincMod()` (note the trailing `c`). Do not rename it without updating both `modules.h` and `pipeline.cpp`.
+- **Stage dump failures**: If `dump_stages` is enabled but a module uses an unsupported `DataPtrTypes` / `ColorDomains` combination, `DumpStageOutput` will log a warning and skip that stage. Extend the switch statements in `pipeline.cpp` if needed.

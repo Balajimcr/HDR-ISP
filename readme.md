@@ -175,14 +175,12 @@ Thanks for the following code repository!
 
 
 
-# Follow Me
+# Author
 
-**Zhihu：[EYES OF ADAS](https://www.zhihu.com/people/fen-shi-qing-nian-29) | Blog：[EYES OF ADAS](https://jokereyeadas.github.io/) | WeChat：**
-
-**![WeChat](docs/wechat.png)**
+**Balaji R (balajimcr@gmail.com)**
 
 
 
-**Eyes of Adas Copyright Reserved @2023, No commercial use without permission**
+**MIT License - Copyright (c) 2026 Balaji R**
 
 -----
